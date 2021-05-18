@@ -1,0 +1,16 @@
+[
+{
+  "modid": "wzmt",
+  "name": "Warzone Mod Tools",
+  "description": "Adds quality of life improvements for Warzone Moderation",
+  "version": "${version}",
+  "mcversion": "",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["AtditC"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
