@@ -54,8 +54,13 @@ public class SuspectSpectator extends CommandBase {
         Collection<NetworkPlayerInfo> networkPlayerInfos = Minecraft.getMinecraft().getNetHandler().getPlayerInfoMap();
 
         for (NetworkPlayerInfo playerInfo : networkPlayerInfos) {
-
             if (playerInfo.getGameProfile().getName().startsWith(player)) {
+                return playerInfo.getGameProfile().getName();
+            }
+        }
+
+        for (NetworkPlayerInfo playerInfo : networkPlayerInfos) {
+            if (playerInfo.getGameProfile().getName().toLowerCase().startsWith(player.toLowerCase())) {
                 return playerInfo.getGameProfile().getName();
             }
         }
