@@ -1,13 +1,12 @@
 package ch.atdit.warzonemodtools;
 
+import ch.atdit.warzonemodtools.modules.moderating.AutoTP;
 import ch.atdit.warzonemodtools.modules.moderating.SuspectSpectator;
 import ch.atdit.warzonemodtools.modules.moderating.AltsChecker;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.*;
-
-import static ch.atdit.warzonemodtools.util.Common.*;
 
 public class ChatHandler {
     public static long latestGameEnd = System.currentTimeMillis();

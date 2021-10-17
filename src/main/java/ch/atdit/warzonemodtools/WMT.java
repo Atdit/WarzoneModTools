@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -105,6 +106,77 @@ public class WMT {
         return WMT.warzoneIPs.contains(ip) || ip.endsWith("warz.one") || ip.endsWith("atdit.de");
     }
 
+
+    public static void initConfig() {
+        if (!configFolderFile.exists()) {
+            if (!configFolderFile.mkdir()) {
+                shutdown("Shutting down Minecraft due to error while trying to create the config folder.");
+            }
+        }
+
+        if (!configFile.exists()) {
+            try {
+                URL url = new URL("https://atdit.de:25/dl/warzonemodtools/config/" + buildVersion);
+                FileUtils.copyURLToFile(url, configFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+                shutdown("Caught exception while trying to format URL or copying URL to file (build version = " + buildVersion + "), shutting down");
+            }
+        }
+
+        JSONObject configJson = readJson(configFile);
+
+        if (configJson == null) {
+            shutdown("Config object is null!");
+        }
+
+        assert configJson != null;
+
+        if (configJson.optInt("buildVersion", -1) != buildVersion) {
+            shutdown("Shutting down due to config build version (" + configJson.getString("buildVersion") +
+                    ") not matching mod build version (" + buildVersion + ")");
+        }
+
+        JSONObject jsonAutoforce = configJson.optJSONObject("autoforce");
+        if (jsonAutoforce == null) jsonAutoforce = new JSONObject();
+
+        JSONObject jsonQuickban = configJson.optJSONObject("quickban");
+        if (jsonQuickban == null) jsonQuickban = new JSONObject();
+
+        Quickban.enabled = jsonQuickban.optBoolean("enabled", Quickban.enabled);
+        Autoforce.enabled = jsonAutoforce.optBoolean("enabled", Autoforce.enabled);
+
+        // Quickban
+        AutoGG.text = jsonAutoGG.optString("text", AutoGG.text);
+
+        // Autoforce
+        team = jsonAutoforce.optString("team", team);
+        delay = jsonAutoforce.optInt("delay", delay);
+
+        ScheduledExecutorService autoforceExec = Executors.newSingleThreadScheduledExecutor();
+        autoforceExec.scheduleAtFixedRate(() -> {
+            if (toForceEnabled) {
+                for (String player : toForce) {
+                    sendMessage("/team force " + player + " " + team);
+                }
+            }
+        }, 0, delay, TimeUnit.SECONDS);
+
+        // Other Stuff
+        allowedIPs = new ArrayList<>(Arrays.asList("warzone.minehut.gg", "minehut.com", "atdit.de"));
+
+        JSONArray jsonAllowedIPs = configJson.optJSONArray("allowed-ips");
+        if (jsonAllowedIPs == null) jsonAllowedIPs = new JSONArray(allowedIPs);
+
+        allowedIPs.clear();
+
+        for (int i = 0; i < jsonAllowedIPs.length(); i++) {
+            allowedIPs.add(jsonAllowedIPs.getString(i));
+        }
+
+        saveConfig();
+    }
+
     @EventHandler
     public void init(FMLInitializationEvent event) {
         Common.logger = LogManager.getLogger(MODID);
@@ -132,37 +204,8 @@ public class WMT {
         AutoTP.midMessages.add("fell into the void");
         AutoTP.midMessages.add("died");
 
-        if (!configFolderFile.exists()) {
-            if (!configFolderFile.mkdir()) {
-                shutdown("Shutting down Minecraft due to error while trying to create the config folder.");
-            }
-        }
+        initConfig();
 
-        if (!configFile.exists()) {
-            try {
-                URL url = new URL("https://atdit.de:25/dl/warzonemodtools/config/" + buildVersion);
-                FileUtils.copyURLToFile(url, configFile);
-            } catch (Exception e) {
-                e.printStackTrace();
-                shutdown("Caught exception while trying to format URL or copying URL to file (build version = " + buildVersion + "), shutting down");
-            }
-        }
-
-        JSONObject configObject = readJson(configFile);
-
-        if (configObject == null) {
-            shutdown("Config object is null!");
-        }
-
-        assert configObject != null;
-
-        if (configObject.optInt("buildVersion", -1) != buildVersion) {
-            shutdown("Shutting down due to config build version (" + configObject.getString("buildVersion") +
-                    ") not matching mod build version (" + buildVersion + ")");
-        }
-
-        autoforce = configObject.getBoolean("autoforce");
-        quickban = configObject.getBoolean("quickban");
 
         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(() -> {
@@ -241,17 +284,7 @@ public class WMT {
         /* START MODULES */
 
         if (autoforce) {
-            team = configObject.getString("autoforce_team");
-            delay = configObject.getInt("autoforce_delay");
 
-            ScheduledExecutorService autoforceExec = Executors.newSingleThreadScheduledExecutor();
-            autoforceExec.scheduleAtFixedRate(() -> {
-                if (toForceEnabled) {
-                    for (String player : toForce) {
-                        sendMessage("/team force " + player + " " + team);
-                    }
-                }
-            }, 0, delay, TimeUnit.SECONDS);
         }
 
         if (quickban) {

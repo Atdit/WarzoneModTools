@@ -1,5 +1,6 @@
 package ch.atdit.warzonemodtools;
 
+import ch.atdit.warzonemodtools.modules.moderating.AutoTP;
 import ch.atdit.warzonemodtools.modules.moderating.SuspectSpectator;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
