@@ -22,6 +22,7 @@ public class Quickban extends CommandBase {
         OTHER
     }
 
+    public static boolean enabled = true;
     public static HashMap<Type, String> prefixes = new HashMap<>();
     public static HashMap<String, Ban> reasons = new HashMap<>();
     public static String length;
